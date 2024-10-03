@@ -1,0 +1,97 @@
+#!/bin/python3
+
+import tkinter as tk
+import psutil
+import sys
+import os
+import subprocess
+
+
+class pannello:
+    def __init__(self, **kwags):
+        self.root = tk.Tk()
+        self.root.title("System Monitor")
+        self.root.overrideredirect(True)
+
+        screen_height = self.root.winfo_screenheight()
+        screen_width = self.root.winfo_screenwidth()
+        app_width = 100
+        app_height = 170
+        app_x_pos = screen_width - app_width
+        app_y_pos = screen_height / 2 - app_height / 2
+        self.root.geometry("+%d+%d" % (app_x_pos, app_y_pos))
+        self.root.wm_attributes("-topmost", True)
+        self.root.wm_attributes("-alpha", 0.8)
+        self.root.config(bg="black")
+
+        # CPU Usage
+        cpu_info = tk.Label(self.root, text="CPU Usage:", bg="black", fg="white")
+        cpu_info.grid(row=0, column=0)
+        self.cpu_usage = tk.Label(self.root, text=psutil.cpu_percent(), bg="black", fg="white")
+        self.cpu_usage.grid(row=1, column=0)
+
+        # RAM Usage
+        ram_info = tk.Label(self.root, text="RAM Usage:", bg="black", fg="white")
+        ram_info.grid(row=2, column=0)
+        self.ram_usage = tk.Label(self.root, text=f"{psutil.virtual_memory().percent}%", bg="black", fg="white")
+        self.ram_usage.grid(row=3, column=0)
+
+        # iGPU Usage
+        gpu_info = tk.Label(self.root, text="iGPU Usage:", bg="black", fg="white")
+        gpu_info.grid(row=4, column=0)
+        self.igpu_usage = tk.Label(self.root, text=self.get_amd_igpu_usage(), bg="black", fg="white")
+        self.igpu_usage.grid(row=5, column=0)
+
+
+        # dGPU Usage
+        gpu_info = tk.Label(self.root, text="dGPU Usage:", bg="black", fg="white")
+        gpu_info.grid(row=6, column=0)
+        self.gpu_usage = tk.Label(self.root, text=self.get_gpu_usage(), bg="black", fg="white")
+        self.gpu_usage.grid(row=7, column=0)
+
+        # End Button
+        end_button = tk.Button(self.root, text="End", width=10, command=self.kill, bg="black", fg="white")
+        end_button.grid(row=10, column=0)
+
+        self.update()
+
+        return self.root.mainloop()
+
+    def kill(self):
+        sys.exit()
+
+    def update(self):
+        self.cpu_usage.config(text=f"{psutil.cpu_percent()}%")
+        self.ram_usage.config(text=f"{psutil.virtual_memory().percent}%")
+        self.igpu_usage.config(text=self.get_amd_igpu_usage())
+        self.gpu_usage.config(text=self.get_gpu_usage())
+        self.root.after(500, self.update)
+
+    def get_gpu_usage(self):
+        try:
+            # Run the nvidia-smi command and capture the output
+            output = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"],
+                encoding="utf-8"
+            )
+            return f"{output.strip()}%"
+        except subprocess.CalledProcessError:
+            return "N/A"
+
+    def get_amd_igpu_usage(self):
+        try:
+            # Run radeontop and capture the output
+            output = subprocess.check_output(["radeontop", "-d", "-b", "1000", "-l", "1"], stderr=subprocess.DEVNULL)
+            output = output.decode('utf-8')
+
+            for line in output.splitlines():
+                if "gpu" in line.lower():
+                    usage = line.split()[4]
+                    return f"{usage}"
+            return "N/A"
+        except subprocess.CalledProcessError:
+            return "N/A"
+
+
+pannello()
+
