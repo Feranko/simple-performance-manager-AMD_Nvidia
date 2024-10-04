@@ -1,3 +1,11 @@
+before any_thng run this
+```
+sudo pacman -S python3 #for arch
+```
+```
+sudo apt install -S python3 #for ubuntu
+```
+
 ok so this is made for simple stuf like get cpu, ram, iGPU, dGPU it was writed in python for simple work, probably  I work on a version writed in C++ or Rust or some speed language
 
 dependencies:
