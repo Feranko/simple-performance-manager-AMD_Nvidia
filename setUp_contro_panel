@@ -1,0 +1,19 @@
+#!/bin/python3
+import os
+
+with open("/etc/os-release") as file:
+    for lines in file:
+        if "arch" in lines:
+            os.system("sudo pacman -Syuu")
+            os.system("sudo pacman -S python3 tk nvidia radeontop")        
+            break
+        elif "ubuntu" in lines:
+            os.system("sudo apt update -y && sudo apt upgrade")
+            os.system("sudo apt install python3 python3-tk python3-dev radeontop")
+            break
+        else:
+            pass
+
+
+    file.close()
+
